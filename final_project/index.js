@@ -16,8 +16,6 @@ app.use("/customer", session({
 }));
 
 app.use("/customer/auth", function(req, res, next) {
-  console.log("AUTH REQUEST:", req.originalUrl);
-
   const token = req.session?.authorization?.accessToken;
 
   if (!token) {
@@ -26,17 +24,14 @@ app.use("/customer/auth", function(req, res, next) {
     });
   }
 
-  jwt.verify(token, "access", (err, user) => {
-    if (err) {
-      return res.status(403).json({
-        message: "User not authenticated"
-      });
-    }
-
-    req.user = user;
-    console.log("AUTH SUCCESS");
+  try {
+    jwt.verify(token, "access");
     next();
-  });
+  } catch (err) {
+    return res.status(403).json({
+      message: "Invalid token"
+    });
+  }
 });
 
 app.use("/customer", customer_routes);
